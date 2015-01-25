@@ -1,0 +1,894 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML><HEAD><META content="IE=5.0000" http-equiv="X-UA-Compatible">
+
+<STYLE type="text/css">
+.knitr.inline {
+  background-color: #f7f7f7;
+  border:solid 1px #B0B0B0;
+}
+.error {
+	font-weight: bold;
+	color: #FF0000;
+},
+.warning {
+	font-weight: bold;
+}
+.message {
+	font-style: italic;
+}
+.source, .output, .warning, .error, .message {
+	padding: 0em 1em;
+  border:solid 1px #F7F7F7;
+}
+.source {
+  background-color: #f5f5f5;
+}
+.rimage.left {
+  text-align: left;
+}
+.rimage.right {
+  text-align: right;
+}
+.rimage.center {
+  text-align: center;
+}
+.hl.num {
+  color: #AF0F91;
+}
+.hl.str {
+  color: #317ECC;
+}
+.hl.com {
+  color: #AD95AF;
+  font-style: italic;
+}
+.hl.opt {
+  color: #000000;
+}
+.hl.std {
+  color: #585858;
+}
+.hl.kwa {
+  color: #295F94;
+  font-weight: bold;
+}
+.hl.kwb {
+  color: #B05A65;
+}
+.hl.kwc {
+  color: #55aa55;
+}
+.hl.kwd {
+  color: #BC5A65;
+  font-weight: bold;
+}
+</STYLE>
+ 
+<META http-equiv="Content-Type" 
+content="text/html; charset=windows-1252"><TITLE>project_Maching_Learning</TITLE> 
+<META name="GENERATOR" content="MSHTML 11.00.9600.17496"></HEAD> 
+<BODY>
+<P>The goal of the project is to predict the manner in which they did the 
+exercise. This is the "classe" variable in the training set. You may use any of 
+the other variables to predict with. You should create a report describing how 
+you built your model, how you used cross validation, what you think the expected 
+out of sample error is, and why you made the choices you did. You will also use 
+your prediction model to predict 20 different test cases.</P>
+<DIV class="chunk" id="unnamed-chunk-1">
+<DIV class="rcode">
+<DIV class="source">
+<PRE class="knitr r"><SPAN class="hl kwd">library</SPAN><SPAN class="hl std">(AppliedPredictiveModeling)</SPAN>
+</PRE></DIV>
+<DIV class="warning">
+<PRE class="knitr r">## Warning: package 'AppliedPredictiveModeling' was built under R version
+## 3.0.3
+</PRE></DIV>
+<DIV class="source">
+<PRE class="knitr r"><SPAN class="hl kwd">library</SPAN><SPAN class="hl std">(caret)</SPAN>
+</PRE></DIV>
+<DIV class="warning">
+<PRE class="knitr r">## Warning: package 'caret' was built under R version 3.0.3
+</PRE></DIV>
+<DIV class="message">
+<PRE class="knitr r">## Loading required package: lattice
+</PRE></DIV>
+<DIV class="warning">
+<PRE class="knitr r">## Warning: package 'lattice' was built under R version 3.0.3
+</PRE></DIV>
+<DIV class="message">
+<PRE class="knitr r">## Loading required package: ggplot2
+</PRE></DIV>
+<DIV class="warning">
+<PRE class="knitr r">## Warning: package 'ggplot2' was built under R version 3.0.3
+</PRE></DIV>
+<DIV class="source">
+<PRE class="knitr r"><SPAN class="hl kwd">library</SPAN><SPAN class="hl std">(rattle)</SPAN>
+</PRE></DIV>
+<DIV class="warning">
+<PRE class="knitr r">## Warning: package 'rattle' was built under R version 3.0.3
+</PRE></DIV>
+<DIV class="message">
+<PRE class="knitr r">## Rattle: A free graphical interface for data mining with R.
+## Version 3.4.1 Copyright (c) 2006-2014 Togaware Pty Ltd.
+## Type 'rattle()' to shake, rattle, and roll your data.
+</PRE></DIV>
+<DIV class="source">
+<PRE class="knitr r"><SPAN class="hl kwd">library</SPAN><SPAN class="hl std">(rpart.plot)</SPAN>
+</PRE></DIV>
+<DIV class="warning">
+<PRE class="knitr r">## Warning: package 'rpart.plot' was built under R version 3.0.3
+</PRE></DIV>
+<DIV class="message">
+<PRE class="knitr r">## Loading required package: rpart
+</PRE></DIV>
+<DIV class="source">
+<PRE class="knitr r"><SPAN class="hl kwd">library</SPAN><SPAN class="hl std">(randomForest)</SPAN>
+</PRE></DIV>
+<DIV class="warning">
+<PRE class="knitr r">## Warning: package 'randomForest' was built under R version 3.0.3
+</PRE></DIV>
+<DIV class="message">
+<PRE class="knitr r">## randomForest 4.6-10
+## Type rfNews() to see new features/changes/bug fixes.
+</PRE></DIV>
+<DIV class="source">
+<PRE class="knitr r"><SPAN class="hl std">df_training</SPAN> <SPAN class="hl kwb">&lt;-</SPAN> <SPAN class="hl kwd">read.csv</SPAN><SPAN class="hl std">(</SPAN><SPAN class="hl str">"E:/coursera/pml-training.csv"</SPAN><SPAN class="hl std">,</SPAN> <SPAN class="hl kwc">na.strings</SPAN><SPAN class="hl std">=</SPAN><SPAN class="hl kwd">c</SPAN><SPAN class="hl std">(</SPAN><SPAN class="hl str">"NA"</SPAN><SPAN class="hl std">,</SPAN><SPAN class="hl str">""</SPAN><SPAN class="hl std">),</SPAN> <SPAN class="hl kwc">header</SPAN><SPAN class="hl std">=</SPAN><SPAN class="hl num">TRUE</SPAN><SPAN class="hl std">)</SPAN>
+<SPAN class="hl std">colnames_train</SPAN> <SPAN class="hl kwb">&lt;-</SPAN> <SPAN class="hl kwd">colnames</SPAN><SPAN class="hl std">(df_training)</SPAN>
+<SPAN class="hl std">df_testing</SPAN> <SPAN class="hl kwb">&lt;-</SPAN> <SPAN class="hl kwd">read.csv</SPAN><SPAN class="hl std">(</SPAN><SPAN class="hl str">"E:/coursera/pml-testing.csv"</SPAN><SPAN class="hl std">,</SPAN> <SPAN class="hl kwc">na.strings</SPAN><SPAN class="hl std">=</SPAN><SPAN class="hl kwd">c</SPAN><SPAN class="hl std">(</SPAN><SPAN class="hl str">"NA"</SPAN><SPAN class="hl std">,</SPAN><SPAN class="hl str">""</SPAN><SPAN class="hl std">),</SPAN> <SPAN class="hl kwc">header</SPAN><SPAN class="hl std">=</SPAN><SPAN class="hl num">TRUE</SPAN><SPAN class="hl std">)</SPAN>
+<SPAN class="hl std">colnames_test</SPAN> <SPAN class="hl kwb">&lt;-</SPAN> <SPAN class="hl kwd">colnames</SPAN><SPAN class="hl std">(df_testing)</SPAN>
+<SPAN class="hl com"># Verify the column names </SPAN>
+<SPAN class="hl kwd">all.equal</SPAN><SPAN class="hl std">(colnames_train[</SPAN><SPAN class="hl num">1</SPAN><SPAN class="hl opt">:</SPAN><SPAN class="hl kwd">length</SPAN><SPAN class="hl std">(colnames_train)</SPAN><SPAN class="hl opt">-</SPAN><SPAN class="hl num">1</SPAN><SPAN class="hl std">], colnames_test[</SPAN><SPAN class="hl num">1</SPAN><SPAN class="hl opt">:</SPAN><SPAN class="hl kwd">length</SPAN><SPAN class="hl std">(colnames_train)</SPAN><SPAN class="hl opt">-</SPAN><SPAN class="hl num">1</SPAN><SPAN class="hl std">])</SPAN>
+</PRE></DIV>
+<DIV class="output">
+<PRE class="knitr r">## [1] TRUE
+</PRE></DIV></DIV></DIV>
+<DIV class="chunk" id="unnamed-chunk-2">
+<DIV class="rcode">
+<DIV class="source">
+<PRE class="knitr r"><SPAN class="hl std">count</SPAN> <SPAN class="hl kwb">&lt;-</SPAN> <SPAN class="hl kwa">function</SPAN><SPAN class="hl std">(</SPAN><SPAN class="hl kwc">x</SPAN><SPAN class="hl std">) {</SPAN>
+    <SPAN class="hl kwd">as.vector</SPAN><SPAN class="hl std">(</SPAN><SPAN class="hl kwd">apply</SPAN><SPAN class="hl std">(x,</SPAN> <SPAN class="hl num">2</SPAN><SPAN class="hl std">,</SPAN> <SPAN class="hl kwa">function</SPAN><SPAN class="hl std">(</SPAN><SPAN class="hl kwc">x</SPAN><SPAN class="hl std">)</SPAN> <SPAN class="hl kwd">length</SPAN><SPAN class="hl std">(</SPAN><SPAN class="hl kwd">which</SPAN><SPAN class="hl std">(</SPAN><SPAN class="hl opt">!</SPAN><SPAN class="hl kwd">is.na</SPAN><SPAN class="hl std">(x)))))</SPAN>
+<SPAN class="hl std">}</SPAN>
+
+<SPAN class="hl com"># Build vector of missing data or NA columns to drop.</SPAN>
+<SPAN class="hl std">colcnts</SPAN> <SPAN class="hl kwb">&lt;-</SPAN> <SPAN class="hl kwd">count</SPAN><SPAN class="hl std">(df_training)</SPAN>
+<SPAN class="hl std">drops</SPAN> <SPAN class="hl kwb">&lt;-</SPAN> <SPAN class="hl kwd">c</SPAN><SPAN class="hl std">()</SPAN>
+<SPAN class="hl kwa">for</SPAN> <SPAN class="hl std">(cnt</SPAN> <SPAN class="hl kwa">in</SPAN> <SPAN class="hl num">1</SPAN><SPAN class="hl opt">:</SPAN><SPAN class="hl kwd">length</SPAN><SPAN class="hl std">(colcnts)) {</SPAN>
+    <SPAN class="hl kwa">if</SPAN> <SPAN class="hl std">(colcnts[cnt]</SPAN> <SPAN class="hl opt">&lt;</SPAN> <SPAN class="hl kwd">nrow</SPAN><SPAN class="hl std">(df_training)) {</SPAN>
+        <SPAN class="hl std">drops</SPAN> <SPAN class="hl kwb">&lt;-</SPAN> <SPAN class="hl kwd">c</SPAN><SPAN class="hl std">(drops, colnames_train[cnt])</SPAN>
+    <SPAN class="hl std">}</SPAN>
+<SPAN class="hl std">}</SPAN>
+
+<SPAN class="hl com"># Drop NA.</SPAN>
+<SPAN class="hl std">df_training</SPAN> <SPAN class="hl kwb">&lt;-</SPAN> <SPAN class="hl std">df_training[,</SPAN><SPAN class="hl opt">!</SPAN><SPAN class="hl std">(</SPAN><SPAN class="hl kwd">names</SPAN><SPAN class="hl std">(df_training)</SPAN> <SPAN class="hl opt">%in%</SPAN> <SPAN class="hl std">drops)]</SPAN>
+<SPAN class="hl std">df_training</SPAN> <SPAN class="hl kwb">&lt;-</SPAN> <SPAN class="hl std">df_training[,</SPAN><SPAN class="hl num">8</SPAN><SPAN class="hl opt">:</SPAN><SPAN class="hl kwd">length</SPAN><SPAN class="hl std">(</SPAN><SPAN class="hl kwd">colnames</SPAN><SPAN class="hl std">(df_training))]</SPAN>
+
+<SPAN class="hl std">df_testing</SPAN> <SPAN class="hl kwb">&lt;-</SPAN> <SPAN class="hl std">df_testing[,</SPAN><SPAN class="hl opt">!</SPAN><SPAN class="hl std">(</SPAN><SPAN class="hl kwd">names</SPAN><SPAN class="hl std">(df_testing)</SPAN> <SPAN class="hl opt">%in%</SPAN> <SPAN class="hl std">drops)]</SPAN>
+<SPAN class="hl std">df_testing</SPAN> <SPAN class="hl kwb">&lt;-</SPAN> <SPAN class="hl std">df_testing[,</SPAN><SPAN class="hl num">8</SPAN><SPAN class="hl opt">:</SPAN><SPAN class="hl kwd">length</SPAN><SPAN class="hl std">(</SPAN><SPAN class="hl kwd">colnames</SPAN><SPAN class="hl std">(df_testing))]</SPAN>
+</PRE></DIV></DIV></DIV>
+<DIV class="chunk" id="unnamed-chunk-3">
+<DIV class="rcode">
+<DIV class="source">
+<PRE class="knitr r"><SPAN class="hl kwd">colnames</SPAN><SPAN class="hl std">(df_testing)</SPAN>
+</PRE></DIV>
+<DIV class="output">
+<PRE class="knitr r">##  [1] "roll_belt"            "pitch_belt"           "yaw_belt"            
+##  [4] "total_accel_belt"     "gyros_belt_x"         "gyros_belt_y"        
+##  [7] "gyros_belt_z"         "accel_belt_x"         "accel_belt_y"        
+## [10] "accel_belt_z"         "magnet_belt_x"        "magnet_belt_y"       
+## [13] "magnet_belt_z"        "roll_arm"             "pitch_arm"           
+## [16] "yaw_arm"              "total_accel_arm"      "gyros_arm_x"         
+## [19] "gyros_arm_y"          "gyros_arm_z"          "accel_arm_x"         
+## [22] "accel_arm_y"          "accel_arm_z"          "magnet_arm_x"        
+## [25] "magnet_arm_y"         "magnet_arm_z"         "roll_dumbbell"       
+## [28] "pitch_dumbbell"       "yaw_dumbbell"         "total_accel_dumbbell"
+## [31] "gyros_dumbbell_x"     "gyros_dumbbell_y"     "gyros_dumbbell_z"    
+## [34] "accel_dumbbell_x"     "accel_dumbbell_y"     "accel_dumbbell_z"    
+## [37] "magnet_dumbbell_x"    "magnet_dumbbell_y"    "magnet_dumbbell_z"   
+## [40] "roll_forearm"         "pitch_forearm"        "yaw_forearm"         
+## [43] "total_accel_forearm"  "gyros_forearm_x"      "gyros_forearm_y"     
+## [46] "gyros_forearm_z"      "accel_forearm_x"      "accel_forearm_y"     
+## [49] "accel_forearm_z"      "magnet_forearm_x"     "magnet_forearm_y"    
+## [52] "magnet_forearm_z"     "problem_id"
+</PRE></DIV>
+<DIV class="source">
+<PRE class="knitr r"><SPAN class="hl std">nsv</SPAN> <SPAN class="hl kwb">&lt;-</SPAN> <SPAN class="hl kwd">nearZeroVar</SPAN><SPAN class="hl std">(df_training,</SPAN> <SPAN class="hl kwc">saveMetrics</SPAN><SPAN class="hl std">=</SPAN><SPAN class="hl num">TRUE</SPAN><SPAN class="hl std">)</SPAN>
+<SPAN class="hl std">nsv</SPAN>
+</PRE></DIV>
+<DIV class="output">
+<PRE class="knitr r">##                      freqRatio percentUnique zeroVar   nzv
+## roll_belt                1.102       6.77811   FALSE FALSE
+## pitch_belt               1.036       9.37723   FALSE FALSE
+## yaw_belt                 1.058       9.97350   FALSE FALSE
+## total_accel_belt         1.063       0.14779   FALSE FALSE
+## gyros_belt_x             1.059       0.71348   FALSE FALSE
+## gyros_belt_y             1.144       0.35165   FALSE FALSE
+## gyros_belt_z             1.066       0.86128   FALSE FALSE
+## accel_belt_x             1.055       0.83580   FALSE FALSE
+## accel_belt_y             1.114       0.72877   FALSE FALSE
+## accel_belt_z             1.079       1.52380   FALSE FALSE
+## magnet_belt_x            1.090       1.66650   FALSE FALSE
+## magnet_belt_y            1.100       1.51870   FALSE FALSE
+## magnet_belt_z            1.006       2.32902   FALSE FALSE
+## roll_arm                52.338      13.52563   FALSE FALSE
+## pitch_arm               87.256      15.73234   FALSE FALSE
+## yaw_arm                 33.029      14.65702   FALSE FALSE
+## total_accel_arm          1.025       0.33636   FALSE FALSE
+## gyros_arm_x              1.016       3.27693   FALSE FALSE
+## gyros_arm_y              1.454       1.91622   FALSE FALSE
+## gyros_arm_z              1.111       1.26389   FALSE FALSE
+## accel_arm_x              1.017       3.95984   FALSE FALSE
+## accel_arm_y              1.140       2.73672   FALSE FALSE
+## accel_arm_z              1.128       4.03629   FALSE FALSE
+## magnet_arm_x             1.000       6.82397   FALSE FALSE
+## magnet_arm_y             1.057       4.44399   FALSE FALSE
+## magnet_arm_z             1.036       6.44685   FALSE FALSE
+## roll_dumbbell            1.022      83.78351   FALSE FALSE
+## pitch_dumbbell           2.277      81.22516   FALSE FALSE
+## yaw_dumbbell             1.132      83.14137   FALSE FALSE
+## total_accel_dumbbell     1.073       0.21914   FALSE FALSE
+## gyros_dumbbell_x         1.003       1.22821   FALSE FALSE
+## gyros_dumbbell_y         1.265       1.41678   FALSE FALSE
+## gyros_dumbbell_z         1.060       1.04984   FALSE FALSE
+## accel_dumbbell_x         1.018       2.16594   FALSE FALSE
+## accel_dumbbell_y         1.053       2.37489   FALSE FALSE
+## accel_dumbbell_z         1.133       2.08949   FALSE FALSE
+## magnet_dumbbell_x        1.098       5.74865   FALSE FALSE
+## magnet_dumbbell_y        1.198       4.30129   FALSE FALSE
+## magnet_dumbbell_z        1.021       3.44511   FALSE FALSE
+## roll_forearm            11.589      11.08959   FALSE FALSE
+## pitch_forearm           65.983      14.85577   FALSE FALSE
+## yaw_forearm             15.323      10.14677   FALSE FALSE
+## total_accel_forearm      1.129       0.35674   FALSE FALSE
+## gyros_forearm_x          1.059       1.51870   FALSE FALSE
+## gyros_forearm_y          1.037       3.77637   FALSE FALSE
+## gyros_forearm_z          1.123       1.56457   FALSE FALSE
+## accel_forearm_x          1.126       4.04648   FALSE FALSE
+## accel_forearm_y          1.059       5.11161   FALSE FALSE
+## accel_forearm_z          1.006       2.95587   FALSE FALSE
+## magnet_forearm_x         1.012       7.76679   FALSE FALSE
+## magnet_forearm_y         1.247       9.54031   FALSE FALSE
+## magnet_forearm_z         1.000       8.57711   FALSE FALSE
+## classe                   1.470       0.02548   FALSE FALSE
+</PRE></DIV></DIV></DIV>
+<P>Modelling First, check for covariates that have virtually no variablility.
+ There's no need to eliminate any covariates due to lack of variablility. The 
+training set (19,622 entries) is very large and testing set (20 entries) is 
+small. I divide the given training set into four equal sets, and then I  split 
+each into a training set (comprising 60% of the entries) and a testing set 
+(comprising 40% of the entries).</P>
+<DIV class="chunk" id="unnamed-chunk-4">
+<DIV class="rcode">
+<DIV class="source">
+<PRE class="knitr r"><SPAN class="hl com"># training into 4 roughly equal sets.</SPAN>
+<SPAN class="hl kwd">set.seed</SPAN><SPAN class="hl std">(</SPAN><SPAN class="hl num">666</SPAN><SPAN class="hl std">)</SPAN>
+<SPAN class="hl std">parts</SPAN> <SPAN class="hl kwb">&lt;-</SPAN> <SPAN class="hl kwd">createDataPartition</SPAN><SPAN class="hl std">(</SPAN><SPAN class="hl kwc">y</SPAN><SPAN class="hl std">=df_training</SPAN><SPAN class="hl opt">$</SPAN><SPAN class="hl std">classe,</SPAN> <SPAN class="hl kwc">p</SPAN><SPAN class="hl std">=</SPAN><SPAN class="hl num">0.25</SPAN><SPAN class="hl std">,</SPAN> <SPAN class="hl kwc">list</SPAN><SPAN class="hl std">=</SPAN><SPAN class="hl num">FALSE</SPAN><SPAN class="hl std">)</SPAN>
+<SPAN class="hl std">df1</SPAN> <SPAN class="hl kwb">&lt;-</SPAN> <SPAN class="hl std">df_training[parts,]</SPAN>
+<SPAN class="hl std">df_remainder</SPAN> <SPAN class="hl kwb">&lt;-</SPAN> <SPAN class="hl std">df_training[</SPAN><SPAN class="hl opt">-</SPAN><SPAN class="hl std">parts,]</SPAN>
+<SPAN class="hl kwd">set.seed</SPAN><SPAN class="hl std">(</SPAN><SPAN class="hl num">666</SPAN><SPAN class="hl std">)</SPAN>
+<SPAN class="hl std">parts</SPAN> <SPAN class="hl kwb">&lt;-</SPAN> <SPAN class="hl kwd">createDataPartition</SPAN><SPAN class="hl std">(</SPAN><SPAN class="hl kwc">y</SPAN><SPAN class="hl std">=df_remainder</SPAN><SPAN class="hl opt">$</SPAN><SPAN class="hl std">classe,</SPAN> <SPAN class="hl kwc">p</SPAN><SPAN class="hl std">=</SPAN><SPAN class="hl num">0.33</SPAN><SPAN class="hl std">,</SPAN> <SPAN class="hl kwc">list</SPAN><SPAN class="hl std">=</SPAN><SPAN class="hl num">FALSE</SPAN><SPAN class="hl std">)</SPAN>
+<SPAN class="hl std">df2</SPAN> <SPAN class="hl kwb">&lt;-</SPAN> <SPAN class="hl std">df_remainder[parts,]</SPAN>
+<SPAN class="hl std">df_remainder</SPAN> <SPAN class="hl kwb">&lt;-</SPAN> <SPAN class="hl std">df_remainder[</SPAN><SPAN class="hl opt">-</SPAN><SPAN class="hl std">parts,]</SPAN>
+<SPAN class="hl kwd">set.seed</SPAN><SPAN class="hl std">(</SPAN><SPAN class="hl num">666</SPAN><SPAN class="hl std">)</SPAN>
+<SPAN class="hl std">parts</SPAN> <SPAN class="hl kwb">&lt;-</SPAN> <SPAN class="hl kwd">createDataPartition</SPAN><SPAN class="hl std">(</SPAN><SPAN class="hl kwc">y</SPAN><SPAN class="hl std">=df_remainder</SPAN><SPAN class="hl opt">$</SPAN><SPAN class="hl std">classe,</SPAN> <SPAN class="hl kwc">p</SPAN><SPAN class="hl std">=</SPAN><SPAN class="hl num">0.5</SPAN><SPAN class="hl std">,</SPAN> <SPAN class="hl kwc">list</SPAN><SPAN class="hl std">=</SPAN><SPAN class="hl num">FALSE</SPAN><SPAN class="hl std">)</SPAN>
+<SPAN class="hl std">df3</SPAN> <SPAN class="hl kwb">&lt;-</SPAN> <SPAN class="hl std">df_remainder[parts,]</SPAN>
+<SPAN class="hl std">df4</SPAN> <SPAN class="hl kwb">&lt;-</SPAN> <SPAN class="hl std">df_remainder[</SPAN><SPAN class="hl opt">-</SPAN><SPAN class="hl std">parts,]</SPAN>
+<SPAN class="hl com"># Divide each of these 4 sets into training (60%) and test (40%) sets.</SPAN>
+<SPAN class="hl kwd">set.seed</SPAN><SPAN class="hl std">(</SPAN><SPAN class="hl num">666</SPAN><SPAN class="hl std">)</SPAN>
+<SPAN class="hl std">inTrain</SPAN> <SPAN class="hl kwb">&lt;-</SPAN> <SPAN class="hl kwd">createDataPartition</SPAN><SPAN class="hl std">(</SPAN><SPAN class="hl kwc">y</SPAN><SPAN class="hl std">=df1</SPAN><SPAN class="hl opt">$</SPAN><SPAN class="hl std">classe,</SPAN> <SPAN class="hl kwc">p</SPAN><SPAN class="hl std">=</SPAN><SPAN class="hl num">0.6</SPAN><SPAN class="hl std">,</SPAN> <SPAN class="hl kwc">list</SPAN><SPAN class="hl std">=</SPAN><SPAN class="hl num">FALSE</SPAN><SPAN class="hl std">)</SPAN>
+<SPAN class="hl std">df_training1</SPAN> <SPAN class="hl kwb">&lt;-</SPAN> <SPAN class="hl std">df1[inTrain,]</SPAN>
+<SPAN class="hl std">df_testing1</SPAN> <SPAN class="hl kwb">&lt;-</SPAN> <SPAN class="hl std">df1[</SPAN><SPAN class="hl opt">-</SPAN><SPAN class="hl std">inTrain,]</SPAN>
+<SPAN class="hl kwd">set.seed</SPAN><SPAN class="hl std">(</SPAN><SPAN class="hl num">666</SPAN><SPAN class="hl std">)</SPAN>
+<SPAN class="hl std">inTrain</SPAN> <SPAN class="hl kwb">&lt;-</SPAN> <SPAN class="hl kwd">createDataPartition</SPAN><SPAN class="hl std">(</SPAN><SPAN class="hl kwc">y</SPAN><SPAN class="hl std">=df2</SPAN><SPAN class="hl opt">$</SPAN><SPAN class="hl std">classe,</SPAN> <SPAN class="hl kwc">p</SPAN><SPAN class="hl std">=</SPAN><SPAN class="hl num">0.6</SPAN><SPAN class="hl std">,</SPAN> <SPAN class="hl kwc">list</SPAN><SPAN class="hl std">=</SPAN><SPAN class="hl num">FALSE</SPAN><SPAN class="hl std">)</SPAN>
+<SPAN class="hl std">df_training2</SPAN> <SPAN class="hl kwb">&lt;-</SPAN> <SPAN class="hl std">df2[inTrain,]</SPAN>
+<SPAN class="hl std">df_testing2</SPAN> <SPAN class="hl kwb">&lt;-</SPAN> <SPAN class="hl std">df2[</SPAN><SPAN class="hl opt">-</SPAN><SPAN class="hl std">inTrain,]</SPAN>
+<SPAN class="hl kwd">set.seed</SPAN><SPAN class="hl std">(</SPAN><SPAN class="hl num">666</SPAN><SPAN class="hl std">)</SPAN>
+<SPAN class="hl std">inTrain</SPAN> <SPAN class="hl kwb">&lt;-</SPAN> <SPAN class="hl kwd">createDataPartition</SPAN><SPAN class="hl std">(</SPAN><SPAN class="hl kwc">y</SPAN><SPAN class="hl std">=df3</SPAN><SPAN class="hl opt">$</SPAN><SPAN class="hl std">classe,</SPAN> <SPAN class="hl kwc">p</SPAN><SPAN class="hl std">=</SPAN><SPAN class="hl num">0.6</SPAN><SPAN class="hl std">,</SPAN> <SPAN class="hl kwc">list</SPAN><SPAN class="hl std">=</SPAN><SPAN class="hl num">FALSE</SPAN><SPAN class="hl std">)</SPAN>
+<SPAN class="hl std">df_training3</SPAN> <SPAN class="hl kwb">&lt;-</SPAN> <SPAN class="hl std">df3[inTrain,]</SPAN>
+<SPAN class="hl std">df_testing3</SPAN> <SPAN class="hl kwb">&lt;-</SPAN> <SPAN class="hl std">df3[</SPAN><SPAN class="hl opt">-</SPAN><SPAN class="hl std">inTrain,]</SPAN>
+<SPAN class="hl kwd">set.seed</SPAN><SPAN class="hl std">(</SPAN><SPAN class="hl num">666</SPAN><SPAN class="hl std">)</SPAN>
+<SPAN class="hl std">inTrain</SPAN> <SPAN class="hl kwb">&lt;-</SPAN> <SPAN class="hl kwd">createDataPartition</SPAN><SPAN class="hl std">(</SPAN><SPAN class="hl kwc">y</SPAN><SPAN class="hl std">=df4</SPAN><SPAN class="hl opt">$</SPAN><SPAN class="hl std">classe,</SPAN> <SPAN class="hl kwc">p</SPAN><SPAN class="hl std">=</SPAN><SPAN class="hl num">0.6</SPAN><SPAN class="hl std">,</SPAN> <SPAN class="hl kwc">list</SPAN><SPAN class="hl std">=</SPAN><SPAN class="hl num">FALSE</SPAN><SPAN class="hl std">)</SPAN>
+<SPAN class="hl std">df_training4</SPAN> <SPAN class="hl kwb">&lt;-</SPAN> <SPAN class="hl std">df4[inTrain,]</SPAN>
+<SPAN class="hl std">df_testing4</SPAN> <SPAN class="hl kwb">&lt;-</SPAN> <SPAN class="hl std">df4[</SPAN><SPAN class="hl opt">-</SPAN><SPAN class="hl std">inTrain,]</SPAN>
+<SPAN class="hl com"># Train on training set 1 of 4 with no extra features.</SPAN>
+<SPAN class="hl kwd">set.seed</SPAN><SPAN class="hl std">(</SPAN><SPAN class="hl num">666</SPAN><SPAN class="hl std">)</SPAN>
+<SPAN class="hl std">modFit</SPAN> <SPAN class="hl kwb">&lt;-</SPAN> <SPAN class="hl kwd">train</SPAN><SPAN class="hl std">(df_training1</SPAN><SPAN class="hl opt">$</SPAN><SPAN class="hl std">classe</SPAN> <SPAN class="hl opt">~</SPAN> <SPAN class="hl std">.,</SPAN> <SPAN class="hl kwc">data</SPAN> <SPAN class="hl std">= df_training1,</SPAN> <SPAN class="hl kwc">method</SPAN><SPAN class="hl std">=</SPAN><SPAN class="hl str">"rpart"</SPAN><SPAN class="hl std">)</SPAN>
+</PRE></DIV>
+<DIV class="message">
+<PRE class="knitr r">## Loading required namespace: e1071
+</PRE></DIV>
+<DIV class="source">
+<PRE class="knitr r"><SPAN class="hl kwd">print</SPAN><SPAN class="hl std">(modFit,</SPAN> <SPAN class="hl kwc">digits</SPAN><SPAN class="hl std">=</SPAN><SPAN class="hl num">3</SPAN><SPAN class="hl std">)</SPAN>
+</PRE></DIV>
+<DIV class="output">
+<PRE class="knitr r">## CART 
+## 
+## 2946 samples
+##   52 predictor
+##    5 classes: 'A', 'B', 'C', 'D', 'E' 
+## 
+## No pre-processing
+## Resampling: Bootstrapped (25 reps) 
+## 
+## Summary of sample sizes: 2946, 2946, 2946, 2946, 2946, 2946, ... 
+## 
+## Resampling results across tuning parameters:
+## 
+##   cp      Accuracy  Kappa   Accuracy SD  Kappa SD
+##   0.0346  0.531     0.4003  0.0355       0.0479  
+##   0.0442  0.471     0.3076  0.0555       0.0967  
+##   0.1162  0.324     0.0602  0.0456       0.0641  
+## 
+## Accuracy was used to select the optimal model using  the largest value.
+## The final value used for the model was cp = 0.0346.
+</PRE></DIV>
+<DIV class="source">
+<PRE class="knitr r"><SPAN class="hl kwd">print</SPAN><SPAN class="hl std">(modFit</SPAN><SPAN class="hl opt">$</SPAN><SPAN class="hl std">finalModel,</SPAN> <SPAN class="hl kwc">digits</SPAN><SPAN class="hl std">=</SPAN><SPAN class="hl num">3</SPAN><SPAN class="hl std">)</SPAN>
+</PRE></DIV>
+<DIV class="output">
+<PRE class="knitr r">## n= 2946 
+## 
+## node), split, n, loss, yval, (yprob)
+##       * denotes terminal node
+## 
+##   1) root 2946 2110 A (0.28 0.19 0.17 0.16 0.18)  
+##     2) roll_belt&lt; 130 2699 1860 A (0.31 0.21 0.19 0.18 0.11)  
+##       4) pitch_forearm&lt; -34 220    0 A (1 0 0 0 0) *
+##       5) pitch_forearm&gt;=-34 2479 1860 A (0.25 0.23 0.21 0.19 0.12)  
+##        10) yaw_belt&gt;=168 138   15 A (0.89 0.072 0 0.036 0) *
+##        11) yaw_belt&lt; 168 2341 1780 B (0.21 0.24 0.22 0.2 0.13)  
+##          22) magnet_dumbbell_z&lt; -83.5 305  134 A (0.56 0.3 0.046 0.069 0.02) *
+##          23) magnet_dumbbell_z&gt;=-83.5 2036 1540 C (0.16 0.23 0.25 0.22 0.14)  
+##            46) roll_dumbbell&lt; 57.7 1209  776 C (0.18 0.19 0.36 0.16 0.11) *
+##            47) roll_dumbbell&gt;=57.7 827  565 D (0.12 0.29 0.081 0.32 0.19)  
+##              94) magnet_belt_y&gt;=590 687  433 D (0.11 0.35 0.07 0.37 0.1)  
+##               188) total_accel_dumbbell&gt;=5.5 474  260 B (0.097 0.45 0.1 0.22 0.13) *
+##               189) total_accel_dumbbell&lt; 5.5 213   62 D (0.14 0.11 0 0.71 0.042) *
+##              95) magnet_belt_y&lt; 590 140   55 E (0.19 0.014 0.14 0.057 0.61) *
+##     3) roll_belt&gt;=130 247    1 E (0.004 0 0 0 1) *
+</PRE></DIV>
+<DIV class="source">
+<PRE class="knitr r"><SPAN class="hl kwd">fancyRpartPlot</SPAN><SPAN class="hl std">(modFit</SPAN><SPAN class="hl opt">$</SPAN><SPAN class="hl std">finalModel)</SPAN>
+</PRE></DIV></DIV>
+<DIV class="rimage default"><IMG title="plot of chunk unnamed-chunk-4" class="plot" 
+alt="plot of chunk unnamed-chunk-4" src="project_Maching_Learning_files/unnamed-chunk-4.png"></DIV>
+<DIV class="rcode">
+<DIV class="source">
+<PRE class="knitr r"><SPAN class="hl com"># testing set 1 of 4 with no extra features.</SPAN>
+<SPAN class="hl std">predictions</SPAN> <SPAN class="hl kwb">&lt;-</SPAN> <SPAN class="hl kwd">predict</SPAN><SPAN class="hl std">(modFit,</SPAN> <SPAN class="hl kwc">newdata</SPAN><SPAN class="hl std">=df_testing1)</SPAN>
+<SPAN class="hl kwd">print</SPAN><SPAN class="hl std">(</SPAN><SPAN class="hl kwd">confusionMatrix</SPAN><SPAN class="hl std">(predictions, df_testing1</SPAN><SPAN class="hl opt">$</SPAN><SPAN class="hl std">classe),</SPAN> <SPAN class="hl kwc">digits</SPAN><SPAN class="hl std">=</SPAN><SPAN class="hl num">4</SPAN><SPAN class="hl std">)</SPAN>
+</PRE></DIV>
+<DIV class="output">
+<PRE class="knitr r">## Confusion Matrix and Statistics
+## 
+##           Reference
+## Prediction   A   B   C   D   E
+##          A 368  74  11  28   8
+##          B  24 151  25  83  30
+##          C 135 148 288 138  99
+##          D  15   7   0  69   4
+##          E  16   0  18   3 219
+## 
+## Overall Statistics
+##                                           
+##                Accuracy : 0.5584          
+##                  95% CI : (0.5361, 0.5805)
+##     No Information Rate : 0.2845          
+##     P-Value [Acc &gt; NIR] : &lt; 2.2e-16       
+##                                           
+##                   Kappa : 0.4441          
+##  Mcnemar's Test P-Value : &lt; 2.2e-16       
+## 
+## Statistics by Class:
+## 
+##                      Class: A Class: B Class: C Class: D Class: E
+## Sensitivity            0.6595   0.3974   0.8421  0.21495   0.6083
+## Specificity            0.9138   0.8975   0.6788  0.98415   0.9769
+## Pos Pred Value         0.7526   0.4824   0.3564  0.72632   0.8555
+## Neg Pred Value         0.8709   0.8610   0.9532  0.86495   0.9173
+## Prevalence             0.2845   0.1938   0.1744  0.16369   0.1836
+## Detection Rate         0.1877   0.0770   0.1469  0.03519   0.1117
+## Detection Prevalence   0.2494   0.1596   0.4120  0.04844   0.1305
+## Balanced Accuracy      0.7866   0.6475   0.7605  0.59955   0.7926
+</PRE></DIV>
+<DIV class="source">
+<PRE class="knitr r"><SPAN class="hl com">#The accuracy rate (0.5584) is low.</SPAN>
+<SPAN class="hl com">#with only preprocessing.</SPAN>
+<SPAN class="hl kwd">set.seed</SPAN><SPAN class="hl std">(</SPAN><SPAN class="hl num">666</SPAN><SPAN class="hl std">)</SPAN>
+<SPAN class="hl std">modFit</SPAN> <SPAN class="hl kwb">&lt;-</SPAN> <SPAN class="hl kwd">train</SPAN><SPAN class="hl std">(df_training1</SPAN><SPAN class="hl opt">$</SPAN><SPAN class="hl std">classe</SPAN> <SPAN class="hl opt">~</SPAN> <SPAN class="hl std">.,</SPAN>  <SPAN class="hl kwc">preProcess</SPAN><SPAN class="hl std">=</SPAN><SPAN class="hl kwd">c</SPAN><SPAN class="hl std">(</SPAN><SPAN class="hl str">"center"</SPAN><SPAN class="hl std">,</SPAN> <SPAN class="hl str">"scale"</SPAN><SPAN class="hl std">),</SPAN> <SPAN class="hl kwc">data</SPAN> <SPAN class="hl std">= df_training1,</SPAN> <SPAN class="hl kwc">method</SPAN><SPAN class="hl std">=</SPAN><SPAN class="hl str">"rpart"</SPAN><SPAN class="hl std">)</SPAN>
+<SPAN class="hl kwd">print</SPAN><SPAN class="hl std">(modFit,</SPAN> <SPAN class="hl kwc">digits</SPAN><SPAN class="hl std">=</SPAN><SPAN class="hl num">3</SPAN><SPAN class="hl std">)</SPAN>
+</PRE></DIV>
+<DIV class="output">
+<PRE class="knitr r">## CART 
+## 
+## 2946 samples
+##   52 predictor
+##    5 classes: 'A', 'B', 'C', 'D', 'E' 
+## 
+## Pre-processing: centered, scaled 
+## Resampling: Bootstrapped (25 reps) 
+## 
+## Summary of sample sizes: 2946, 2946, 2946, 2946, 2946, 2946, ... 
+## 
+## Resampling results across tuning parameters:
+## 
+##   cp      Accuracy  Kappa   Accuracy SD  Kappa SD
+##   0.0346  0.531     0.4003  0.0355       0.0479  
+##   0.0442  0.471     0.3077  0.0555       0.0968  
+##   0.1162  0.324     0.0602  0.0456       0.0641  
+## 
+## Accuracy was used to select the optimal model using  the largest value.
+## The final value used for the model was cp = 0.0346.
+</PRE></DIV>
+<DIV class="source">
+<PRE class="knitr r"><SPAN class="hl kwd">set.seed</SPAN><SPAN class="hl std">(</SPAN><SPAN class="hl num">666</SPAN><SPAN class="hl std">)</SPAN>
+<SPAN class="hl std">modFit</SPAN> <SPAN class="hl kwb">&lt;-</SPAN> <SPAN class="hl kwd">train</SPAN><SPAN class="hl std">(df_training1</SPAN><SPAN class="hl opt">$</SPAN><SPAN class="hl std">classe</SPAN> <SPAN class="hl opt">~</SPAN> <SPAN class="hl std">.,</SPAN>  <SPAN class="hl kwc">trControl</SPAN><SPAN class="hl std">=</SPAN><SPAN class="hl kwd">trainControl</SPAN><SPAN class="hl std">(</SPAN><SPAN class="hl kwc">method</SPAN> <SPAN class="hl std">=</SPAN> <SPAN class="hl str">"cv"</SPAN><SPAN class="hl std">,</SPAN> <SPAN class="hl kwc">number</SPAN> <SPAN class="hl std">=</SPAN> <SPAN class="hl num">4</SPAN><SPAN class="hl std">),</SPAN> <SPAN class="hl kwc">data</SPAN> <SPAN class="hl std">= df_training1,</SPAN> <SPAN class="hl kwc">method</SPAN><SPAN class="hl std">=</SPAN><SPAN class="hl str">"rpart"</SPAN><SPAN class="hl std">)</SPAN>
+<SPAN class="hl kwd">print</SPAN><SPAN class="hl std">(modFit,</SPAN> <SPAN class="hl kwc">digits</SPAN><SPAN class="hl std">=</SPAN><SPAN class="hl num">3</SPAN><SPAN class="hl std">)</SPAN>
+</PRE></DIV>
+<DIV class="output">
+<PRE class="knitr r">## CART 
+## 
+## 2946 samples
+##   52 predictor
+##    5 classes: 'A', 'B', 'C', 'D', 'E' 
+## 
+## No pre-processing
+## Resampling: Cross-Validated (4 fold) 
+## 
+## Summary of sample sizes: 2212, 2209, 2208, 2209 
+## 
+## Resampling results across tuning parameters:
+## 
+##   cp      Accuracy  Kappa   Accuracy SD  Kappa SD
+##   0.0346  0.552     0.4266  0.0383       0.0542  
+##   0.0442  0.470     0.3041  0.0689       0.1197  
+##   0.1162  0.344     0.0914  0.0405       0.0610  
+## 
+## Accuracy was used to select the optimal model using  the largest value.
+## The final value used for the model was cp = 0.0346.
+</PRE></DIV>
+<DIV class="source">
+<PRE class="knitr r"><SPAN class="hl com"># with both preprocessing and cross validation.</SPAN>
+<SPAN class="hl kwd">set.seed</SPAN><SPAN class="hl std">(</SPAN><SPAN class="hl num">666</SPAN><SPAN class="hl std">)</SPAN>
+<SPAN class="hl std">modFit</SPAN> <SPAN class="hl kwb">&lt;-</SPAN> <SPAN class="hl kwd">train</SPAN><SPAN class="hl std">(df_training1</SPAN><SPAN class="hl opt">$</SPAN><SPAN class="hl std">classe</SPAN> <SPAN class="hl opt">~</SPAN> <SPAN class="hl std">.,</SPAN>  <SPAN class="hl kwc">preProcess</SPAN><SPAN class="hl std">=</SPAN><SPAN class="hl kwd">c</SPAN><SPAN class="hl std">(</SPAN><SPAN class="hl str">"center"</SPAN><SPAN class="hl std">,</SPAN> <SPAN class="hl str">"scale"</SPAN><SPAN class="hl std">),</SPAN> <SPAN class="hl kwc">trControl</SPAN><SPAN class="hl std">=</SPAN><SPAN class="hl kwd">trainControl</SPAN><SPAN class="hl std">(</SPAN><SPAN class="hl kwc">method</SPAN> <SPAN class="hl std">=</SPAN> <SPAN class="hl str">"cv"</SPAN><SPAN class="hl std">,</SPAN> <SPAN class="hl kwc">number</SPAN> <SPAN class="hl std">=</SPAN> <SPAN class="hl num">4</SPAN><SPAN class="hl std">),</SPAN> <SPAN class="hl kwc">data</SPAN> <SPAN class="hl std">= df_training1,</SPAN> <SPAN class="hl kwc">method</SPAN><SPAN class="hl std">=</SPAN><SPAN class="hl str">"rpart"</SPAN><SPAN class="hl std">)</SPAN>
+<SPAN class="hl kwd">print</SPAN><SPAN class="hl std">(modFit,</SPAN> <SPAN class="hl kwc">digits</SPAN><SPAN class="hl std">=</SPAN><SPAN class="hl num">3</SPAN><SPAN class="hl std">)</SPAN>
+</PRE></DIV>
+<DIV class="output">
+<PRE class="knitr r">## CART 
+## 
+## 2946 samples
+##   52 predictor
+##    5 classes: 'A', 'B', 'C', 'D', 'E' 
+## 
+## Pre-processing: centered, scaled 
+## Resampling: Cross-Validated (4 fold) 
+## 
+## Summary of sample sizes: 2212, 2209, 2208, 2209 
+## 
+## Resampling results across tuning parameters:
+## 
+##   cp      Accuracy  Kappa   Accuracy SD  Kappa SD
+##   0.0346  0.552     0.4266  0.0383       0.0542  
+##   0.0442  0.470     0.3041  0.0689       0.1197  
+##   0.1162  0.344     0.0914  0.0405       0.0610  
+## 
+## Accuracy was used to select the optimal model using  the largest value.
+## The final value used for the model was cp = 0.0346.
+</PRE></DIV>
+<DIV class="source">
+<PRE class="knitr r"><SPAN class="hl com"># testing set 1 of 4 with both preprocessing and cross validation.</SPAN>
+<SPAN class="hl std">predictions</SPAN> <SPAN class="hl kwb">&lt;-</SPAN> <SPAN class="hl kwd">predict</SPAN><SPAN class="hl std">(modFit,</SPAN> <SPAN class="hl kwc">newdata</SPAN><SPAN class="hl std">=df_testing1)</SPAN>
+<SPAN class="hl kwd">print</SPAN><SPAN class="hl std">(</SPAN><SPAN class="hl kwd">confusionMatrix</SPAN><SPAN class="hl std">(predictions, df_testing1</SPAN><SPAN class="hl opt">$</SPAN><SPAN class="hl std">classe),</SPAN> <SPAN class="hl kwc">digits</SPAN><SPAN class="hl std">=</SPAN><SPAN class="hl num">4</SPAN><SPAN class="hl std">)</SPAN>
+</PRE></DIV>
+<DIV class="output">
+<PRE class="knitr r">## Confusion Matrix and Statistics
+## 
+##           Reference
+## Prediction   A   B   C   D   E
+##          A 368  74  11  28   8
+##          B  24 151  25  83  30
+##          C 135 148 288 138  99
+##          D  15   7   0  69   4
+##          E  16   0  18   3 219
+## 
+## Overall Statistics
+##                                           
+##                Accuracy : 0.5584          
+##                  95% CI : (0.5361, 0.5805)
+##     No Information Rate : 0.2845          
+##     P-Value [Acc &gt; NIR] : &lt; 2.2e-16       
+##                                           
+##                   Kappa : 0.4441          
+##  Mcnemar's Test P-Value : &lt; 2.2e-16       
+## 
+## Statistics by Class:
+## 
+##                      Class: A Class: B Class: C Class: D Class: E
+## Sensitivity            0.6595   0.3974   0.8421  0.21495   0.6083
+## Specificity            0.9138   0.8975   0.6788  0.98415   0.9769
+## Pos Pred Value         0.7526   0.4824   0.3564  0.72632   0.8555
+## Neg Pred Value         0.8709   0.8610   0.9532  0.86495   0.9173
+## Prevalence             0.2845   0.1938   0.1744  0.16369   0.1836
+## Detection Rate         0.1877   0.0770   0.1469  0.03519   0.1117
+## Detection Prevalence   0.2494   0.1596   0.4120  0.04844   0.1305
+## Balanced Accuracy      0.7866   0.6475   0.7605  0.59955   0.7926
+</PRE></DIV>
+<DIV class="source">
+<PRE class="knitr r"><SPAN class="hl com">#The is a little improvement in accuracy rate rose from 0.531 to 0.552 against training sets. However, when run against the corresponding testing set, the accuracy rate was identical (0.5584) for both the “out of the box” and the preprocessing/cross validation methods.</SPAN>
+<SPAN class="hl com">#Random Forest</SPAN>
+<SPAN class="hl com"># Train on training set 1 of 4 with only cross validation.</SPAN>
+<SPAN class="hl kwd">set.seed</SPAN><SPAN class="hl std">(</SPAN><SPAN class="hl num">666</SPAN><SPAN class="hl std">)</SPAN>
+<SPAN class="hl std">modFit</SPAN> <SPAN class="hl kwb">&lt;-</SPAN> <SPAN class="hl kwd">train</SPAN><SPAN class="hl std">(df_training1</SPAN><SPAN class="hl opt">$</SPAN><SPAN class="hl std">classe</SPAN> <SPAN class="hl opt">~</SPAN> <SPAN class="hl std">.,</SPAN> <SPAN class="hl kwc">method</SPAN><SPAN class="hl std">=</SPAN><SPAN class="hl str">"rf"</SPAN><SPAN class="hl std">,</SPAN> <SPAN class="hl kwc">trControl</SPAN><SPAN class="hl std">=</SPAN><SPAN class="hl kwd">trainControl</SPAN><SPAN class="hl std">(</SPAN><SPAN class="hl kwc">method</SPAN> <SPAN class="hl std">=</SPAN> <SPAN class="hl str">"cv"</SPAN><SPAN class="hl std">,</SPAN> <SPAN class="hl kwc">number</SPAN> <SPAN class="hl std">=</SPAN> <SPAN class="hl num">4</SPAN><SPAN class="hl std">),</SPAN> <SPAN class="hl kwc">data</SPAN><SPAN class="hl std">=df_training1)</SPAN>
+<SPAN class="hl kwd">print</SPAN><SPAN class="hl std">(modFit,</SPAN> <SPAN class="hl kwc">digits</SPAN><SPAN class="hl std">=</SPAN><SPAN class="hl num">3</SPAN><SPAN class="hl std">)</SPAN>
+</PRE></DIV>
+<DIV class="output">
+<PRE class="knitr r">## Random Forest 
+## 
+## 2946 samples
+##   52 predictor
+##    5 classes: 'A', 'B', 'C', 'D', 'E' 
+## 
+## No pre-processing
+## Resampling: Cross-Validated (4 fold) 
+## 
+## Summary of sample sizes: 2212, 2209, 2208, 2209 
+## 
+## Resampling results across tuning parameters:
+## 
+##   mtry  Accuracy  Kappa  Accuracy SD  Kappa SD
+##    2    0.951     0.939  0.00449      0.00570 
+##   27    0.955     0.943  0.00582      0.00736 
+##   52    0.951     0.938  0.00888      0.01121 
+## 
+## Accuracy was used to select the optimal model using  the largest value.
+## The final value used for the model was mtry = 27.
+</PRE></DIV>
+<DIV class="source">
+<PRE class="knitr r"><SPAN class="hl com"># Run against testing set 1 of 4.</SPAN>
+<SPAN class="hl std">predictions</SPAN> <SPAN class="hl kwb">&lt;-</SPAN> <SPAN class="hl kwd">predict</SPAN><SPAN class="hl std">(modFit,</SPAN> <SPAN class="hl kwc">newdata</SPAN><SPAN class="hl std">=df_testing1)</SPAN>
+<SPAN class="hl kwd">print</SPAN><SPAN class="hl std">(</SPAN><SPAN class="hl kwd">confusionMatrix</SPAN><SPAN class="hl std">(predictions, df_testing1</SPAN><SPAN class="hl opt">$</SPAN><SPAN class="hl std">classe),</SPAN> <SPAN class="hl kwc">digits</SPAN><SPAN class="hl std">=</SPAN><SPAN class="hl num">4</SPAN><SPAN class="hl std">)</SPAN>
+</PRE></DIV>
+<DIV class="output">
+<PRE class="knitr r">## Confusion Matrix and Statistics
+## 
+##           Reference
+## Prediction   A   B   C   D   E
+##          A 555  12   1   0   1
+##          B   2 358  12   1   0
+##          C   0   9 324   6   4
+##          D   0   1   5 309   1
+##          E   1   0   0   5 354
+## 
+## Overall Statistics
+##                                           
+##                Accuracy : 0.9689          
+##                  95% CI : (0.9602, 0.9761)
+##     No Information Rate : 0.2845          
+##     P-Value [Acc &gt; NIR] : &lt; 2.2e-16       
+##                                           
+##                   Kappa : 0.9606          
+##  Mcnemar's Test P-Value : NA              
+## 
+## Statistics by Class:
+## 
+##                      Class: A Class: B Class: C Class: D Class: E
+## Sensitivity            0.9946   0.9421   0.9474   0.9626   0.9833
+## Specificity            0.9900   0.9905   0.9883   0.9957   0.9963
+## Pos Pred Value         0.9754   0.9598   0.9446   0.9778   0.9833
+## Neg Pred Value         0.9978   0.9861   0.9889   0.9927   0.9963
+## Prevalence             0.2845   0.1938   0.1744   0.1637   0.1836
+## Detection Rate         0.2830   0.1826   0.1652   0.1576   0.1805
+## Detection Prevalence   0.2902   0.1902   0.1749   0.1611   0.1836
+## Balanced Accuracy      0.9923   0.9663   0.9678   0.9792   0.9898
+</PRE></DIV>
+<DIV class="source">
+<PRE class="knitr r"><SPAN class="hl com"># Run against 20 testing set provided.</SPAN>
+<SPAN class="hl kwd">print</SPAN><SPAN class="hl std">(</SPAN><SPAN class="hl kwd">predict</SPAN><SPAN class="hl std">(modFit,</SPAN> <SPAN class="hl kwc">newdata</SPAN><SPAN class="hl std">=df_testing))</SPAN>
+</PRE></DIV>
+<DIV class="output">
+<PRE class="knitr r">##  [1] B A A A A E D B A A B C B A E E A B B B
+## Levels: A B C D E
+</PRE></DIV>
+<DIV class="source">
+<PRE class="knitr r"><SPAN class="hl kwd">set.seed</SPAN><SPAN class="hl std">(</SPAN><SPAN class="hl num">666</SPAN><SPAN class="hl std">)</SPAN>
+<SPAN class="hl std">modFit</SPAN> <SPAN class="hl kwb">&lt;-</SPAN> <SPAN class="hl kwd">train</SPAN><SPAN class="hl std">(df_training1</SPAN><SPAN class="hl opt">$</SPAN><SPAN class="hl std">classe</SPAN> <SPAN class="hl opt">~</SPAN> <SPAN class="hl std">.,</SPAN> <SPAN class="hl kwc">method</SPAN><SPAN class="hl std">=</SPAN><SPAN class="hl str">"rf"</SPAN><SPAN class="hl std">,</SPAN> <SPAN class="hl kwc">preProcess</SPAN><SPAN class="hl std">=</SPAN><SPAN class="hl kwd">c</SPAN><SPAN class="hl std">(</SPAN><SPAN class="hl str">"center"</SPAN><SPAN class="hl std">,</SPAN> <SPAN class="hl str">"scale"</SPAN><SPAN class="hl std">),</SPAN> <SPAN class="hl kwc">trControl</SPAN><SPAN class="hl std">=</SPAN><SPAN class="hl kwd">trainControl</SPAN><SPAN class="hl std">(</SPAN><SPAN class="hl kwc">method</SPAN> <SPAN class="hl std">=</SPAN> <SPAN class="hl str">"cv"</SPAN><SPAN class="hl std">,</SPAN> <SPAN class="hl kwc">number</SPAN> <SPAN class="hl std">=</SPAN> <SPAN class="hl num">4</SPAN><SPAN class="hl std">),</SPAN> <SPAN class="hl kwc">data</SPAN><SPAN class="hl std">=df_training1)</SPAN>
+<SPAN class="hl kwd">print</SPAN><SPAN class="hl std">(modFit,</SPAN> <SPAN class="hl kwc">digits</SPAN><SPAN class="hl std">=</SPAN><SPAN class="hl num">3</SPAN><SPAN class="hl std">)</SPAN>
+</PRE></DIV>
+<DIV class="output">
+<PRE class="knitr r">## Random Forest 
+## 
+## 2946 samples
+##   52 predictor
+##    5 classes: 'A', 'B', 'C', 'D', 'E' 
+## 
+## Pre-processing: centered, scaled 
+## Resampling: Cross-Validated (4 fold) 
+## 
+## Summary of sample sizes: 2212, 2209, 2208, 2209 
+## 
+## Resampling results across tuning parameters:
+## 
+##   mtry  Accuracy  Kappa  Accuracy SD  Kappa SD
+##    2    0.951     0.939  0.00382      0.00482 
+##   27    0.954     0.942  0.00466      0.00590 
+##   52    0.952     0.939  0.01066      0.01347 
+## 
+## Accuracy was used to select the optimal model using  the largest value.
+## The final value used for the model was mtry = 27.
+</PRE></DIV>
+<DIV class="source">
+<PRE class="knitr r"><SPAN class="hl com"># Run against testing set 1 of 4.</SPAN>
+<SPAN class="hl std">predictions</SPAN> <SPAN class="hl kwb">&lt;-</SPAN> <SPAN class="hl kwd">predict</SPAN><SPAN class="hl std">(modFit,</SPAN> <SPAN class="hl kwc">newdata</SPAN><SPAN class="hl std">=df_testing1)</SPAN>
+<SPAN class="hl kwd">print</SPAN><SPAN class="hl std">(</SPAN><SPAN class="hl kwd">confusionMatrix</SPAN><SPAN class="hl std">(predictions, df_testing1</SPAN><SPAN class="hl opt">$</SPAN><SPAN class="hl std">classe),</SPAN> <SPAN class="hl kwc">digits</SPAN><SPAN class="hl std">=</SPAN><SPAN class="hl num">4</SPAN><SPAN class="hl std">)</SPAN>
+</PRE></DIV>
+<DIV class="output">
+<PRE class="knitr r">## Confusion Matrix and Statistics
+## 
+##           Reference
+## Prediction   A   B   C   D   E
+##          A 555  10   0   0   0
+##          B   2 357  11   0   0
+##          C   0  12 327   6   5
+##          D   0   1   4 312   1
+##          E   1   0   0   3 354
+## 
+## Overall Statistics
+##                                           
+##                Accuracy : 0.9714          
+##                  95% CI : (0.9631, 0.9784)
+##     No Information Rate : 0.2845          
+##     P-Value [Acc &gt; NIR] : &lt; 2.2e-16       
+##                                           
+##                   Kappa : 0.9639          
+##  Mcnemar's Test P-Value : NA              
+## 
+## Statistics by Class:
+## 
+##                      Class: A Class: B Class: C Class: D Class: E
+## Sensitivity            0.9946   0.9395   0.9561   0.9720   0.9833
+## Specificity            0.9929   0.9918   0.9858   0.9963   0.9975
+## Pos Pred Value         0.9823   0.9649   0.9343   0.9811   0.9888
+## Neg Pred Value         0.9979   0.9855   0.9907   0.9945   0.9963
+## Prevalence             0.2845   0.1938   0.1744   0.1637   0.1836
+## Detection Rate         0.2830   0.1820   0.1668   0.1591   0.1805
+## Detection Prevalence   0.2881   0.1887   0.1785   0.1622   0.1826
+## Balanced Accuracy      0.9937   0.9656   0.9710   0.9842   0.9904
+</PRE></DIV>
+<DIV class="source">
+<PRE class="knitr r"><SPAN class="hl com"># Run against 20 testing set provided.</SPAN>
+<SPAN class="hl kwd">print</SPAN><SPAN class="hl std">(</SPAN><SPAN class="hl kwd">predict</SPAN><SPAN class="hl std">(modFit,</SPAN> <SPAN class="hl kwc">newdata</SPAN><SPAN class="hl std">=df_testing))</SPAN>
+</PRE></DIV>
+<DIV class="output">
+<PRE class="knitr r">##  [1] B A A A A E D B A A B C B A E E A B B B
+## Levels: A B C D E
+</PRE></DIV>
+<DIV class="source">
+<PRE class="knitr r"><SPAN class="hl com">#I apply both preprocessing and cross validation to the remaining 3 data sets.</SPAN>
+<SPAN class="hl com"># Train on training set 2 of 4 with only cross validation.</SPAN>
+<SPAN class="hl kwd">set.seed</SPAN><SPAN class="hl std">(</SPAN><SPAN class="hl num">666</SPAN><SPAN class="hl std">)</SPAN>
+<SPAN class="hl std">modFit</SPAN> <SPAN class="hl kwb">&lt;-</SPAN> <SPAN class="hl kwd">train</SPAN><SPAN class="hl std">(df_training2</SPAN><SPAN class="hl opt">$</SPAN><SPAN class="hl std">classe</SPAN> <SPAN class="hl opt">~</SPAN> <SPAN class="hl std">.,</SPAN> <SPAN class="hl kwc">method</SPAN><SPAN class="hl std">=</SPAN><SPAN class="hl str">"rf"</SPAN><SPAN class="hl std">,</SPAN> <SPAN class="hl kwc">preProcess</SPAN><SPAN class="hl std">=</SPAN><SPAN class="hl kwd">c</SPAN><SPAN class="hl std">(</SPAN><SPAN class="hl str">"center"</SPAN><SPAN class="hl std">,</SPAN> <SPAN class="hl str">"scale"</SPAN><SPAN class="hl std">),</SPAN> <SPAN class="hl kwc">trControl</SPAN><SPAN class="hl std">=</SPAN><SPAN class="hl kwd">trainControl</SPAN><SPAN class="hl std">(</SPAN><SPAN class="hl kwc">method</SPAN> <SPAN class="hl std">=</SPAN> <SPAN class="hl str">"cv"</SPAN><SPAN class="hl std">,</SPAN> <SPAN class="hl kwc">number</SPAN> <SPAN class="hl std">=</SPAN> <SPAN class="hl num">4</SPAN><SPAN class="hl std">),</SPAN> <SPAN class="hl kwc">data</SPAN><SPAN class="hl std">=df_training2)</SPAN>
+<SPAN class="hl kwd">print</SPAN><SPAN class="hl std">(modFit,</SPAN> <SPAN class="hl kwc">digits</SPAN><SPAN class="hl std">=</SPAN><SPAN class="hl num">3</SPAN><SPAN class="hl std">)</SPAN>
+</PRE></DIV>
+<DIV class="output">
+<PRE class="knitr r">## Random Forest 
+## 
+## 2917 samples
+##   52 predictor
+##    5 classes: 'A', 'B', 'C', 'D', 'E' 
+## 
+## Pre-processing: centered, scaled 
+## Resampling: Cross-Validated (4 fold) 
+## 
+## Summary of sample sizes: 2188, 2188, 2187, 2188 
+## 
+## Resampling results across tuning parameters:
+## 
+##   mtry  Accuracy  Kappa  Accuracy SD  Kappa SD
+##    2    0.952     0.939  0.00665      0.00844 
+##   27    0.954     0.941  0.01023      0.01300 
+##   52    0.944     0.929  0.00579      0.00735 
+## 
+## Accuracy was used to select the optimal model using  the largest value.
+## The final value used for the model was mtry = 27.
+</PRE></DIV>
+<DIV class="source">
+<PRE class="knitr r"><SPAN class="hl com"># Run against testing set 2 of 4.</SPAN>
+<SPAN class="hl std">predictions</SPAN> <SPAN class="hl kwb">&lt;-</SPAN> <SPAN class="hl kwd">predict</SPAN><SPAN class="hl std">(modFit,</SPAN> <SPAN class="hl kwc">newdata</SPAN><SPAN class="hl std">=df_testing2)</SPAN>
+<SPAN class="hl kwd">print</SPAN><SPAN class="hl std">(</SPAN><SPAN class="hl kwd">confusionMatrix</SPAN><SPAN class="hl std">(predictions, df_testing2</SPAN><SPAN class="hl opt">$</SPAN><SPAN class="hl std">classe),</SPAN> <SPAN class="hl kwc">digits</SPAN><SPAN class="hl std">=</SPAN><SPAN class="hl num">4</SPAN><SPAN class="hl std">)</SPAN>
+</PRE></DIV>
+<DIV class="output">
+<PRE class="knitr r">## Confusion Matrix and Statistics
+## 
+##           Reference
+## Prediction   A   B   C   D   E
+##          A 548  11   0   2   0
+##          B   3 355  14   1   5
+##          C   0   9 323  10   6
+##          D   0   1   1 303   5
+##          E   1   0   0   2 341
+## 
+## Overall Statistics
+##                                           
+##                Accuracy : 0.9634          
+##                  95% CI : (0.9541, 0.9713)
+##     No Information Rate : 0.2844          
+##     P-Value [Acc &gt; NIR] : &lt; 2.2e-16       
+##                                           
+##                   Kappa : 0.9537          
+##  Mcnemar's Test P-Value : NA              
+## 
+## Statistics by Class:
+## 
+##                      Class: A Class: B Class: C Class: D Class: E
+## Sensitivity            0.9928   0.9441   0.9556   0.9528   0.9552
+## Specificity            0.9906   0.9853   0.9844   0.9957   0.9981
+## Pos Pred Value         0.9768   0.9392   0.9282   0.9774   0.9913
+## Neg Pred Value         0.9971   0.9866   0.9906   0.9908   0.9900
+## Prevalence             0.2844   0.1937   0.1741   0.1638   0.1839
+## Detection Rate         0.2823   0.1829   0.1664   0.1561   0.1757
+## Detection Prevalence   0.2890   0.1947   0.1793   0.1597   0.1772
+## Balanced Accuracy      0.9917   0.9647   0.9700   0.9743   0.9766
+</PRE></DIV>
+<DIV class="source">
+<PRE class="knitr r"><SPAN class="hl com"># Run against 20 testing set provided .</SPAN>
+<SPAN class="hl kwd">print</SPAN><SPAN class="hl std">(</SPAN><SPAN class="hl kwd">predict</SPAN><SPAN class="hl std">(modFit,</SPAN> <SPAN class="hl kwc">newdata</SPAN><SPAN class="hl std">=df_testing))</SPAN>
+</PRE></DIV>
+<DIV class="output">
+<PRE class="knitr r">##  [1] B A B A A E D B A A B C B A E E A B B B
+## Levels: A B C D E
+</PRE></DIV>
+<DIV class="source">
+<PRE class="knitr r"><SPAN class="hl com"># Train on training set 3 of 4 with only cross validation.</SPAN>
+<SPAN class="hl kwd">set.seed</SPAN><SPAN class="hl std">(</SPAN><SPAN class="hl num">666</SPAN><SPAN class="hl std">)</SPAN>
+<SPAN class="hl std">modFit</SPAN> <SPAN class="hl kwb">&lt;-</SPAN> <SPAN class="hl kwd">train</SPAN><SPAN class="hl std">(df_training3</SPAN><SPAN class="hl opt">$</SPAN><SPAN class="hl std">classe</SPAN> <SPAN class="hl opt">~</SPAN> <SPAN class="hl std">.,</SPAN> <SPAN class="hl kwc">method</SPAN><SPAN class="hl std">=</SPAN><SPAN class="hl str">"rf"</SPAN><SPAN class="hl std">,</SPAN> <SPAN class="hl kwc">preProcess</SPAN><SPAN class="hl std">=</SPAN><SPAN class="hl kwd">c</SPAN><SPAN class="hl std">(</SPAN><SPAN class="hl str">"center"</SPAN><SPAN class="hl std">,</SPAN> <SPAN class="hl str">"scale"</SPAN><SPAN class="hl std">),</SPAN> <SPAN class="hl kwc">trControl</SPAN><SPAN class="hl std">=</SPAN><SPAN class="hl kwd">trainControl</SPAN><SPAN class="hl std">(</SPAN><SPAN class="hl kwc">method</SPAN> <SPAN class="hl std">=</SPAN> <SPAN class="hl str">"cv"</SPAN><SPAN class="hl std">,</SPAN> <SPAN class="hl kwc">number</SPAN> <SPAN class="hl std">=</SPAN> <SPAN class="hl num">4</SPAN><SPAN class="hl std">),</SPAN> <SPAN class="hl kwc">data</SPAN><SPAN class="hl std">=df_training3)</SPAN>
+<SPAN class="hl kwd">print</SPAN><SPAN class="hl std">(modFit,</SPAN> <SPAN class="hl kwc">digits</SPAN><SPAN class="hl std">=</SPAN><SPAN class="hl num">3</SPAN><SPAN class="hl std">)</SPAN>
+</PRE></DIV>
+<DIV class="output">
+<PRE class="knitr r">## Random Forest 
+## 
+## 2960 samples
+##   52 predictor
+##    5 classes: 'A', 'B', 'C', 'D', 'E' 
+## 
+## Pre-processing: centered, scaled 
+## Resampling: Cross-Validated (4 fold) 
+## 
+## Summary of sample sizes: 2219, 2221, 2220, 2220 
+## 
+## Resampling results across tuning parameters:
+## 
+##   mtry  Accuracy  Kappa  Accuracy SD  Kappa SD
+##    2    0.949     0.935  0.00696      0.0088  
+##   27    0.951     0.938  0.01046      0.0132  
+##   52    0.944     0.929  0.01156      0.0146  
+## 
+## Accuracy was used to select the optimal model using  the largest value.
+## The final value used for the model was mtry = 27.
+</PRE></DIV>
+<DIV class="source">
+<PRE class="knitr r"><SPAN class="hl com"># Run against testing set 3 of 4.</SPAN>
+<SPAN class="hl std">predictions</SPAN> <SPAN class="hl kwb">&lt;-</SPAN> <SPAN class="hl kwd">predict</SPAN><SPAN class="hl std">(modFit,</SPAN> <SPAN class="hl kwc">newdata</SPAN><SPAN class="hl std">=df_testing3)</SPAN>
+<SPAN class="hl kwd">print</SPAN><SPAN class="hl std">(</SPAN><SPAN class="hl kwd">confusionMatrix</SPAN><SPAN class="hl std">(predictions, df_testing3</SPAN><SPAN class="hl opt">$</SPAN><SPAN class="hl std">classe),</SPAN> <SPAN class="hl kwc">digits</SPAN><SPAN class="hl std">=</SPAN><SPAN class="hl num">4</SPAN><SPAN class="hl std">)</SPAN>
+</PRE></DIV>
+<DIV class="output">
+<PRE class="knitr r">## Confusion Matrix and Statistics
+## 
+##           Reference
+## Prediction   A   B   C   D   E
+##          A 556  10   0   1   0
+##          B   1 357  17   0   4
+##          C   1  12 322   7   3
+##          D   1   2   2 313   1
+##          E   1   0   3   2 354
+## 
+## Overall Statistics
+##                                           
+##                Accuracy : 0.9655          
+##                  95% CI : (0.9564, 0.9731)
+##     No Information Rate : 0.2843          
+##     P-Value [Acc &gt; NIR] : &lt; 2e-16         
+##                                           
+##                   Kappa : 0.9563          
+##  Mcnemar's Test P-Value : 0.03619         
+## 
+## Statistics by Class:
+## 
+##                      Class: A Class: B Class: C Class: D Class: E
+## Sensitivity            0.9929   0.9370   0.9360   0.9690   0.9779
+## Specificity            0.9922   0.9862   0.9859   0.9964   0.9963
+## Pos Pred Value         0.9806   0.9420   0.9333   0.9812   0.9833
+## Neg Pred Value         0.9971   0.9849   0.9865   0.9939   0.9950
+## Prevalence             0.2843   0.1934   0.1746   0.1640   0.1838
+## Detection Rate         0.2822   0.1812   0.1635   0.1589   0.1797
+## Detection Prevalence   0.2878   0.1924   0.1751   0.1619   0.1827
+## Balanced Accuracy      0.9925   0.9616   0.9610   0.9827   0.9871
+</PRE></DIV>
+<DIV class="source">
+<PRE class="knitr r"><SPAN class="hl com"># Run against 20 testing set provided.</SPAN>
+<SPAN class="hl kwd">print</SPAN><SPAN class="hl std">(</SPAN><SPAN class="hl kwd">predict</SPAN><SPAN class="hl std">(modFit,</SPAN> <SPAN class="hl kwc">newdata</SPAN><SPAN class="hl std">=df_testing))</SPAN>
+</PRE></DIV>
+<DIV class="output">
+<PRE class="knitr r">##  [1] B A B A A E D B A A B C B A E E A B B B
+## Levels: A B C D E
+</PRE></DIV>
+<DIV class="source">
+<PRE class="knitr r"><SPAN class="hl com"># Train on training set 4 of 4 with only cross validation.</SPAN>
+<SPAN class="hl kwd">set.seed</SPAN><SPAN class="hl std">(</SPAN><SPAN class="hl num">666</SPAN><SPAN class="hl std">)</SPAN>
+<SPAN class="hl std">modFit</SPAN> <SPAN class="hl kwb">&lt;-</SPAN> <SPAN class="hl kwd">train</SPAN><SPAN class="hl std">(df_training4</SPAN><SPAN class="hl opt">$</SPAN><SPAN class="hl std">classe</SPAN> <SPAN class="hl opt">~</SPAN> <SPAN class="hl std">.,</SPAN> <SPAN class="hl kwc">method</SPAN><SPAN class="hl std">=</SPAN><SPAN class="hl str">"rf"</SPAN><SPAN class="hl std">,</SPAN> <SPAN class="hl kwc">preProcess</SPAN><SPAN class="hl std">=</SPAN><SPAN class="hl kwd">c</SPAN><SPAN class="hl std">(</SPAN><SPAN class="hl str">"center"</SPAN><SPAN class="hl std">,</SPAN> <SPAN class="hl str">"scale"</SPAN><SPAN class="hl std">),</SPAN> <SPAN class="hl kwc">trControl</SPAN><SPAN class="hl std">=</SPAN><SPAN class="hl kwd">trainControl</SPAN><SPAN class="hl std">(</SPAN><SPAN class="hl kwc">method</SPAN> <SPAN class="hl std">=</SPAN> <SPAN class="hl str">"cv"</SPAN><SPAN class="hl std">,</SPAN> <SPAN class="hl kwc">number</SPAN> <SPAN class="hl std">=</SPAN> <SPAN class="hl num">4</SPAN><SPAN class="hl std">),</SPAN> <SPAN class="hl kwc">data</SPAN><SPAN class="hl std">=df_training4)</SPAN>
+<SPAN class="hl kwd">print</SPAN><SPAN class="hl std">(modFit,</SPAN> <SPAN class="hl kwc">digits</SPAN><SPAN class="hl std">=</SPAN><SPAN class="hl num">3</SPAN><SPAN class="hl std">)</SPAN>
+</PRE></DIV>
+<DIV class="output">
+<PRE class="knitr r">## Random Forest 
+## 
+## 2958 samples
+##   52 predictor
+##    5 classes: 'A', 'B', 'C', 'D', 'E' 
+## 
+## Pre-processing: centered, scaled 
+## Resampling: Cross-Validated (4 fold) 
+## 
+## Summary of sample sizes: 2218, 2219, 2219, 2218 
+## 
+## Resampling results across tuning parameters:
+## 
+##   mtry  Accuracy  Kappa  Accuracy SD  Kappa SD
+##    2    0.950     0.937  0.00656      0.00834 
+##   27    0.955     0.943  0.00891      0.01128 
+##   52    0.947     0.932  0.01013      0.01284 
+## 
+## Accuracy was used to select the optimal model using  the largest value.
+## The final value used for the model was mtry = 27.
+</PRE></DIV>
+<DIV class="source">
+<PRE class="knitr r"><SPAN class="hl com"># Run against testing set 4 of 4.</SPAN>
+<SPAN class="hl std">predictions</SPAN> <SPAN class="hl kwb">&lt;-</SPAN> <SPAN class="hl kwd">predict</SPAN><SPAN class="hl std">(modFit,</SPAN> <SPAN class="hl kwc">newdata</SPAN><SPAN class="hl std">=df_testing4)</SPAN>
+<SPAN class="hl kwd">print</SPAN><SPAN class="hl std">(</SPAN><SPAN class="hl kwd">confusionMatrix</SPAN><SPAN class="hl std">(predictions, df_testing4</SPAN><SPAN class="hl opt">$</SPAN><SPAN class="hl std">classe),</SPAN> <SPAN class="hl kwc">digits</SPAN><SPAN class="hl std">=</SPAN><SPAN class="hl num">4</SPAN><SPAN class="hl std">)</SPAN>
+</PRE></DIV>
+<DIV class="output">
+<PRE class="knitr r">## Confusion Matrix and Statistics
+## 
+##           Reference
+## Prediction   A   B   C   D   E
+##          A 553  20   0   0   0
+##          B   4 357  19   3   3
+##          C   2   4 315   7   7
+##          D   1   0   9 312   6
+##          E   0   0   0   1 346
+## 
+## Overall Statistics
+##                                           
+##                Accuracy : 0.9563          
+##                  95% CI : (0.9463, 0.9649)
+##     No Information Rate : 0.2844          
+##     P-Value [Acc &gt; NIR] : &lt; 2.2e-16       
+##                                           
+##                   Kappa : 0.9447          
+##  Mcnemar's Test P-Value : NA              
+## 
+## Statistics by Class:
+## 
+##                      Class: A Class: B Class: C Class: D Class: E
+## Sensitivity            0.9875   0.9370   0.9184   0.9659   0.9558
+## Specificity            0.9858   0.9817   0.9877   0.9903   0.9994
+## Pos Pred Value         0.9651   0.9249   0.9403   0.9512   0.9971
+## Neg Pred Value         0.9950   0.9848   0.9829   0.9933   0.9901
+## Prevalence             0.2844   0.1935   0.1742   0.1640   0.1838
+## Detection Rate         0.2809   0.1813   0.1600   0.1585   0.1757
+## Detection Prevalence   0.2910   0.1960   0.1701   0.1666   0.1762
+## Balanced Accuracy      0.9867   0.9594   0.9530   0.9781   0.9776
+</PRE></DIV>
+<DIV class="source">
+<PRE class="knitr r"><SPAN class="hl com"># Run against 20 testing set.</SPAN>
+<SPAN class="hl kwd">print</SPAN><SPAN class="hl std">(</SPAN><SPAN class="hl kwd">predict</SPAN><SPAN class="hl std">(modFit,</SPAN> <SPAN class="hl kwc">newdata</SPAN><SPAN class="hl std">=df_testing))</SPAN>
+</PRE></DIV>
+<DIV class="output">
+<PRE class="knitr r">##  [1] B A B A A E D D A A B C B A E E A B B B
+## Levels: A B C D E
+</PRE></DIV>
+<DIV class="source">
+<PRE class="knitr r"><SPAN class="hl com">##Out of Sample Error</SPAN>
+
+<SPAN class="hl com">#Random Forest (preprocessing and cross validation) Testing Set 1: 1 - .9714 = 0.0286</SPAN>
+<SPAN class="hl com">#Random Forest (preprocessing and cross validation) Testing Set 2: 1 - .9634 = 0.0366</SPAN>
+<SPAN class="hl com">#Random Forest (preprocessing and cross validation) Testing Set 3: 1 - .9655 = 0.0345</SPAN>
+<SPAN class="hl com">#Random Forest (preprocessing and cross validation) Testing Set 4: 1 - .9563 = 0.0437</SPAN>
+</PRE></DIV></DIV></DIV></BODY></HTML>
